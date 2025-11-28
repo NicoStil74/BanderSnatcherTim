@@ -26,7 +26,7 @@ app.get("/api/crawl", (req, res) => {
   const crawlerPath = path.join(PROJECT_ROOT, "crawler", "crawler.py");
 
   const py = spawn(
-    "python3",
+    "python",
     [crawlerPath, url, "--max-pages", "80", "--max-depth", "3"],
     { cwd: PROJECT_ROOT }
   );
