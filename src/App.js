@@ -98,7 +98,7 @@ function App() {
         incoming,
         outgoing
     } = useMemo(() => {
-        const MAX_EDGES = 400;
+        const MAX_EDGES = 3000;
 
         // limit links
         const limitedLinks = data.links.slice(0, MAX_EDGES);
