@@ -10,6 +10,11 @@ app.use(express.json());
 
 const PROJECT_ROOT = __dirname;
 
+// ✅ Health check route
+app.get("/api/ping", (req, res) => {
+  res.json({ ok: true, message: "backend alive" });
+});
+
 // GET /api/crawl?url=https://www.tum.de
 app.get("/api/crawl", (req, res) => {
   const { url } = req.query;

@@ -36,6 +36,7 @@ function App() {
     try {
       const built = buildForceGraphData(crawlResult.graph);
 
+      // apply titles
       if (crawlResult.titles) {
         built.nodes.forEach((n) => {
           if (crawlResult.titles[n.id]) {
@@ -44,6 +45,35 @@ function App() {
         });
       }
 
+      // remove old positional fields so physics runs
+      built.nodes.forEach((n) => {
+        delete n.x;
+        delete n.y;
+        delete n.vx;
+        delete n.vy;
+      });
+
+      built.links.forEach((l) => {
+        if (typeof l.source === "object") {
+          delete l.source.x;
+          delete l.source.y;
+          delete l.source.vx;
+          delete l.source.vy;
+        }
+        if (typeof l.target === "object") {
+          delete l.target.x;
+          delete l.target.y;
+          delete l.target.vx;
+          delete l.target.vy;
+        }
+      });
+
+      // *** FIX: remove embedded node objects from links ***
+      built.links = built.links.map((l) => ({
+        source: typeof l.source === "object" ? l.source.id : l.source,
+        target: typeof l.target === "object" ? l.target.id : l.target
+      }));
+
       setData(built);
     } catch (e) {
       console.error("Error building graph from crawlResult, using demo graph", e);
@@ -51,11 +81,12 @@ function App() {
     }
   }, [crawlResult]);
 
-  // optional: initial crawl on mount
+  // auto-crawl on mount
   useEffect(() => {
     runCrawl();
   }, [runCrawl]);
 
+  // Compute neighbors, degrees, sorted nodes, and LIMIT EDGES
   const {
     graphData,
     neighbors,
@@ -67,6 +98,22 @@ function App() {
     incoming,
     outgoing
   } = useMemo(() => {
+    const MAX_EDGES = 400;
+
+    // limit links
+    const limitedLinks = data.links.slice(0, MAX_EDGES);
+
+    // keep only nodes referenced by those links
+    const visibleNodeIds = new Set();
+    limitedLinks.forEach((l) => {
+      const src = typeof l.source === "object" ? l.source.id : l.source;
+      const tgt = typeof l.target === "object" ? l.target.id : l.target;
+      visibleNodeIds.add(src);
+      visibleNodeIds.add(tgt);
+    });
+
+    const visibleNodes = data.nodes.filter((n) => visibleNodeIds.has(n.id));
+
     const neighbors = new Map();
     const inDegree = new Map();
     const outDegree = new Map();
@@ -76,7 +123,7 @@ function App() {
     let maxPR = -Infinity;
     let minPR = Infinity;
 
-    data.nodes.forEach((n) => {
+    visibleNodes.forEach((n) => {
       neighbors.set(n.id, new Set());
       inDegree.set(n.id, 0);
       outDegree.set(n.id, 0);
@@ -88,29 +135,40 @@ function App() {
       if (pr < minPR) minPR = pr;
     });
 
-    data.links.forEach((l) => {
+    limitedLinks.forEach((l) => {
       const src = typeof l.source === "object" ? l.source.id : l.source;
       const tgt = typeof l.target === "object" ? l.target.id : l.target;
 
-      neighbors.get(src)?.add(tgt);
-      neighbors.get(tgt)?.add(src);
+      if (!neighbors.has(src) || !neighbors.has(tgt)) return;
 
-      inDegree.set(tgt, (inDegree.get(tgt) || 0) + 1);
-      outDegree.set(src, (outDegree.get(src) || 0) + 1);
+      neighbors.get(src).add(tgt);
+      neighbors.get(tgt).add(src);
 
-      incoming.get(tgt)?.add(src);
-      outgoing.get(src)?.add(tgt);
+      inDegree.set(tgt, inDegree.get(tgt) + 1);
+      outDegree.set(src, outDegree.get(src) + 1);
+
+      incoming.get(tgt).add(src);
+      outgoing.get(src).add(tgt);
     });
 
     if (!isFinite(maxPR)) maxPR = 0.0001;
     if (!isFinite(minPR)) minPR = 0;
 
-    const sortedNodes = [...data.nodes].sort(
+    const sortedNodes = [...visibleNodes].sort(
       (a, b) => (b.pagerank ?? 0) - (a.pagerank ?? 0)
     );
 
+    // final clean graph for the ForceGraph
+    const graphData = {
+      nodes: visibleNodes.map((n) => ({ ...n })),
+      links: limitedLinks.map((l) => ({
+        source: typeof l.source === "object" ? l.source.id : l.source,
+        target: typeof l.target === "object" ? l.target.id : l.target
+      }))
+    };
+
     return {
-      graphData: data,
+      graphData,
       neighbors,
       sortedNodes,
       maxPR,
@@ -129,7 +187,7 @@ function App() {
     graphRef.current.zoom(4, 600);
   };
 
-  // Keyword search across all nodes (title + URL)
+  // Keyword search
   const handleKeywordSearch = (e) => {
     e.preventDefault();
     const q = keyword.trim().toLowerCase();
@@ -140,7 +198,7 @@ function App() {
       return;
     }
 
-    const matches = data.nodes
+    const matches = graphData.nodes
       .filter((n) => {
         const title = (n.title || "").toLowerCase();
         const id = (n.id || "").toLowerCase();
@@ -173,8 +231,8 @@ function App() {
 
   const isLinkHighlighted = (link) => {
     if (!hoverNode) return false;
-    const src = typeof link.source === "object" ? link.source.id : link.source;
-    const tgt = typeof link.target === "object" ? link.target.id : link.target;
+    const src = link.source.id ?? link.source;
+    const tgt = link.target.id ?? link.target;
     return src === hoverNode.id || tgt === hoverNode.id;
   };
 
@@ -224,7 +282,7 @@ function App() {
   return (
     <div className="app">
       <Sidebar
-        data={data}
+        data={graphData}
         keyword={keyword}
         setKeyword={setKeyword}
         hasQuery={hasQuery}
@@ -236,7 +294,6 @@ function App() {
       />
 
       <main className="main">
-        {/* Crawl controls card spans full width */}
         <div className="card" style={{ gridColumn: "1 / -1" }}>
           <CrawlerControls
             siteUrl={siteUrl}

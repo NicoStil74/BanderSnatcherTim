@@ -251,7 +251,12 @@ small {
     min-height: 420px;
     border-radius: 0.9rem;
     overflow: hidden;
+    /* Add position relative to help canvas coordinate calculation */
+    position: relative; 
     border: 1px solid rgba(32, 51, 81, 0.95);
+    /* Ensure the canvas is treated as a block to avoid inline gaps */
+    display: flex; 
+    flex-direction: column;
 }
 
 /* Results / table card --------------------------------------------- */
