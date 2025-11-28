@@ -231,17 +231,26 @@ const Sidebar = ({
                     >
                       {n.title || n.id}
                     </div>
-                    <div
+
+                    {/* CLICKABLE URL ADDED HERE */}
+                    <a
+                      href={n.id}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={(e) => e.stopPropagation()}
                       style={{
                         fontSize: "0.76rem",
-                        color: "#C7D2FE",
+                        color: "#93C5FD",
+                        textDecoration: "underline",
                         overflow: "hidden",
                         textOverflow: "ellipsis",
-                        whiteSpace: "nowrap"
+                        whiteSpace: "nowrap",
+                        display: "block"
                       }}
                     >
                       {n.id}
-                    </div>
+                    </a>
+
                     <div
                       style={{
                         fontSize: "0.74rem",
