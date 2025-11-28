@@ -14,7 +14,7 @@ const Sidebar = ({
                      topNodes
                  }) => {
     return (
-        // ✅ Let CSS .sidebar control size & layout
+        // Let CSS .sidebar handle size/layout
         <aside className="sidebar">
             {/* HEADER */}
             <div
@@ -111,7 +111,8 @@ const Sidebar = ({
                         style={{
                             display: "flex",
                             alignItems: "center",
-                            gap: "0.5rem"
+                            gap: "0.5rem",
+                            flexWrap: "wrap" // allow button to wrap below on narrow widths
                         }}
                     >
                         <input
@@ -120,7 +121,8 @@ const Sidebar = ({
                             value={keyword}
                             onChange={(e) => setKeyword(e.target.value)}
                             style={{
-                                flex: 1,
+                                flex: "1 1 0",
+                                minWidth: 0,
                                 padding: "0.55rem 0.8rem",
                                 borderRadius: 999,
                                 border: "1px solid rgba(15,23,42,0.95)",
@@ -142,7 +144,8 @@ const Sidebar = ({
                                 fontWeight: 500,
                                 cursor: "pointer",
                                 boxShadow: "0 10px 24px rgba(0,32,80,0.7)",
-                                whiteSpace: "nowrap"
+                                whiteSpace: "nowrap",
+                                flexShrink: 0 // keeps size, wraps line instead of squishing
                             }}
                         >
                             Search
