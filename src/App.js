@@ -11,17 +11,27 @@ const buildLoadingPlaceholder = (count = 80) => {
     const nodes = [];
     const links = [];
     const n = Math.max(10, count);
+
     for (let i = 0; i < n; i++) {
-        nodes.push({
-            id: `loading-${i}`,
-            title: `Loading ${i + 1}`,
-            pagerank: 0
-        });
-        if (i > 0) {
-            links.push({ source: `loading-${i - 1}`, target: `loading-${i}` });
+        const id = `loading-${i}`;
+        nodes.push({ id, title: `Loading ${i + 1}`, pagerank: 0 });
+
+        if (i === 0) continue;
+
+        const parentA = `loading-${Math.floor((i - 1) / 2)}`;
+        links.push({ source: parentA, target: id });
+
+        if (i > 2 && i % 3 === 0) {
+            const parentB = `loading-${Math.max(0, i - 3)}`;
+            links.push({ source: parentB, target: id });
+        }
+
+        if (i > 5 && i % 5 === 0) {
+            const parentC = `loading-${i - 5}`;
+            links.push({ source: parentC, target: id });
         }
     }
-    links.push({ source: `loading-${n - 1}`, target: `loading-0` });
+
     return { nodes, links };
 };
 
