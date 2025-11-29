@@ -1,4 +1,4 @@
-y// src/graphUtils.js
+// src/graphUtils.js
 
 export function computePageRank(
   adj,
