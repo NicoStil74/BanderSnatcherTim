@@ -3,6 +3,23 @@ import { useState, useCallback } from "react";
 
 const API_BASE = "http://localhost:5001";
 
+// --------------------------
+// URL NORMALIZER
+// --------------------------
+function normalizeUrl(input) {
+  let url = input.trim();
+
+  if (!url) return null;
+
+  // Add protocol if missing (http/https)
+  if (!/^https?:\/\//i.test(url)) {
+    url = "https://" + url;
+  }
+
+  // No forced "www.", no forced "/de/"
+  return url;
+}
+
 function useCrawler(initialUrl = "https://www.tum.de") {
   const [siteUrl, setSiteUrl] = useState(initialUrl);
   const [loading, setLoading] = useState(false);
@@ -10,8 +27,12 @@ function useCrawler(initialUrl = "https://www.tum.de") {
   const [crawlResult, setCrawlResult] = useState(null); // { graph, titles, crawl_info }
 
   const runCrawl = useCallback(async () => {
-    const trimmed = siteUrl.trim();
-    if (!trimmed) return;
+    const normalized = normalizeUrl(siteUrl);
+
+    if (!normalized) {
+      setError("Please enter a URL.");
+      return;
+    }
 
     setLoading(true);
     setError("");
@@ -19,7 +40,7 @@ function useCrawler(initialUrl = "https://www.tum.de") {
 
     try {
       const resp = await fetch(
-        `${API_BASE}/api/crawl?url=${encodeURIComponent(trimmed)}`
+        `${API_BASE}/api/crawl?url=${encodeURIComponent(normalized)}`
       );
 
       if (!resp.ok) {
