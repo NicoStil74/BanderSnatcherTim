@@ -94,6 +94,12 @@ function GraphCard({
         });
     }, [graphData, graphRef, dims, loading]);
 
+    const handleAutoFit = useCallback(() => {
+        if (!graphRef.current || !graphData?.nodes?.length || dims.w <= 0 || dims.h <= 0) return;
+        const pad = Math.max(80, Math.min(dims.w, dims.h) * 0.14 || 110);
+        graphRef.current.zoomToFit(700, pad);
+    }, [graphData, dims, graphRef]);
+
     return (
         <section className="card graph-card">
             <CrawlerControls
@@ -122,6 +128,27 @@ function GraphCard({
                     pointerRef.current = { active: false, x: 0, y: 0 };
                 }}
             >
+                <button
+                    type="button"
+                    onClick={handleAutoFit}
+                    style={{
+                        position: "absolute",
+                        right: 12,
+                        bottom: 12,
+                        zIndex: 5,
+                        border: "1px solid rgba(148,181,233,0.7)",
+                        background: "rgba(6,14,26,0.9)",
+                        color: "#E8EEF9",
+                        borderRadius: 10,
+                        padding: "0.35rem 0.65rem",
+                        fontSize: "0.8rem",
+                        cursor: "pointer",
+                        boxShadow: "0 10px 18px rgba(2,10,24,0.6)",
+                        backdropFilter: "blur(4px)"
+                    }}
+                >
+                    Auto-fit
+                </button>
                 <ForceGraph2D
                     ref={graphRef}
                     backgroundColor="#050827"
@@ -159,7 +186,7 @@ function GraphCard({
                         });
                     }}
                     onNodeHover={handleNodeHover}
-                    onNodeClick={(node, event) => {
+                  onNodeClick={(node, event) => {
                       // ⭐ CMD/CTRL + Click → Open link in new tab
                       if (event.metaKey || event.ctrlKey) {
                           if (node.id && typeof node.id === "string") {
@@ -167,10 +194,18 @@ function GraphCard({
                           }
                           return; // do NOT select node
                       }
-                  
-                      // ⭐ Normal click → highlight/persist  
+
+                      // ⭐ Normal click → highlight/persist and zoom in moderately
                       setSelectedNode(node);
                       setHoverNode(null);
+                      const fg = graphRef.current;
+                      if (fg && typeof node.x === "number" && typeof node.y === "number") {
+                          const currentZoom =
+                              typeof fg.zoom === "function" ? fg.zoom() : 1;
+                          const targetZoom = currentZoom * 1.5;
+                          fg.centerAt(node.x, node.y, 400);
+                          fg.zoom(targetZoom, 400);
+                      }
                   }}
                     onBackgroundClick={() => {
                         setSelectedNode(null);
