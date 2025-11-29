@@ -68,7 +68,7 @@ const Sidebar = ({
       </div>
 
       {/* SEARCH ONLY */}
-      <section>
+      <section style={{ marginBottom: "0.15rem" }}>
         <form
           onSubmit={handleKeywordSearch}
           style={{
@@ -266,13 +266,13 @@ const Sidebar = ({
             display: "flex",
             alignItems: "baseline",
             justifyContent: "space-between",
-            gap: "0.5rem"
+            gap: "0.4rem"
           }}
         >
-          <h2 style={{ margin: 0 }}>Top PageRank</h2>
+          <h2 style={{ margin: 0, fontSize: "0.9rem" }}>Top PageRank</h2>
           <div
             style={{
-              fontSize: "0.75rem",
+              fontSize: "0.7rem",
               color: "#9FB4D8",
               whiteSpace: "nowrap"
             }}
@@ -280,7 +280,7 @@ const Sidebar = ({
             Nodes: {nodeCount} • Edges: {edgeCount}
           </div>
         </div>
-        <div className="table-wrapper">
+        <div className="table-wrapper" style={{ maxHeight: 140 }}>
           <table>
             <thead>
               <tr>

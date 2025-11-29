@@ -196,12 +196,13 @@ async def crawl_site(
                 graph[url] = []
 
                 if html:
+                    links = extract_links(html, url, domain)
+                    graph[url] = list(links)
+
+                    # If keyword filtering is enabled, still record links, but only follow matches.
                     if keyword and (keyword not in html.lower() and keyword not in url.lower()):
                         queue.task_done()
                         continue
-
-                    links = extract_links(html, url, domain)
-                    graph[url] = list(links)
 
                     next_depth = depth + 1
                     if next_depth <= max_depth:

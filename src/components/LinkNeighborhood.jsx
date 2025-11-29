@@ -106,9 +106,13 @@ function LinkNeighborhood({
                   </span>
                 ) : (
                   selectedIncoming.map((id) => (
-                    <div
+                    <a
                       key={id}
+                      href={id}
+                      target="_blank"
+                      rel="noopener noreferrer"
                       style={{
+                        display: "block",
                         padding: "0.3rem 0.7rem",
                         borderRadius: 12,
                         background: "#0065BD",
@@ -116,11 +120,13 @@ function LinkNeighborhood({
                         fontSize: "0.78rem",
                         lineHeight: 1.3,
                         overflowWrap: "anywhere",
-                        boxShadow: "0 4px 10px rgba(0,32,80,0.5) inset"
+                        boxShadow: "0 4px 10px rgba(0,32,80,0.5) inset",
+                        color: "#E5F0FF",
+                        textDecoration: "none"
                       }}
                     >
                       {id}
-                    </div>
+                    </a>
                   ))
                 )}
               </div>
@@ -161,9 +167,13 @@ function LinkNeighborhood({
                   </span>
                 ) : (
                   selectedOutgoing.map((id) => (
-                    <div
+                    <a
                       key={id}
+                      href={id}
+                      target="_blank"
+                      rel="noopener noreferrer"
                       style={{
+                        display: "block",
                         padding: "0.3rem 0.7rem",
                         borderRadius: 12,
                         background: "#98C6EA",
@@ -172,11 +182,12 @@ function LinkNeighborhood({
                         fontSize: "0.78rem",
                         lineHeight: 1.3,
                         overflowWrap: "anywhere",
-                        boxShadow: "0 4px 10px rgba(0,32,80,0.35) inset"
+                        boxShadow: "0 4px 10px rgba(0,32,80,0.35) inset",
+                        textDecoration: "none"
                       }}
                     >
                       {id}
-                    </div>
+                    </a>
                   ))
                 )}
               </div>

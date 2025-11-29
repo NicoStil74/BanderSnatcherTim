@@ -59,25 +59,47 @@ function useCrawler(initialUrl = "https://www.tum.de/de/") {
       return;
     }
 
+    let lastError = "";
+
     try {
-      const resp = await fetch(
-        `${API_BASE}/api/crawl?url=${encodeURIComponent(normalized)}`
-      );
-
-      if (!resp.ok) {
-        let msg = `Crawler failed with status ${resp.status}`;
+      for (let attempt = 1; attempt <= 5; attempt++) {
         try {
-          const body = await resp.json();
-          if (body && body.error) msg = body.error;
-        } catch {}
-        throw new Error(msg);
-      }
+          const resp = await fetch(
+            `${API_BASE}/api/crawl?url=${encodeURIComponent(normalized)}`
+          );
 
-      const json = await resp.json();
-      setCrawlResult(json);
+          if (!resp.ok) {
+            let msg = `Crawler failed with status ${resp.status}`;
+            try {
+              const body = await resp.json();
+              if (body && body.error) msg = body.error;
+            } catch {}
+            throw new Error(msg);
+          }
+
+          const json = await resp.json();
+          setCrawlResult(json);
+          lastError = "";
+          break;
+        } catch (e) {
+          lastError = e.message || "Something went wrong while crawling.";
+          if (attempt === 5) {
+            throw e;
+          }
+          // brief backoff
+          await new Promise((res) => setTimeout(res, 400));
+        }
+      }
     } catch (e) {
       console.error("Crawler request error:", e);
-      setError(e.message || "Something went wrong while crawling.");
+      setError(
+        lastError ||
+          e.message ||
+          "Something went wrong while crawling."
+      );
+      alert(
+        "Could not crawl the site after several attempts.\n\nPlease paste another link or cancel."
+      );
     } finally {
       setLoading(false);
     }

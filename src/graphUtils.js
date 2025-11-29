@@ -1,38 +1,51 @@
-// src/graphUtils.js
+y// src/graphUtils.js
 
-export function computePageRank(adj, iterations = 30, damping = 0.85) {
+export function computePageRank(
+  adj,
+  damping = 0.85,
+  tol = 1e-6,
+  maxIter = 200
+) {
   const nodes = Object.keys(adj);
   const N = nodes.length;
+  if (N === 0) return {};
+
+  // Initialize rank and outdegree
   const pr = {};
   const outDegree = {};
-
   nodes.forEach((n) => {
     pr[n] = 1 / N;
     outDegree[n] = (adj[n] && adj[n].length) || 0;
   });
 
-  for (let it = 0; it < iterations; it++) {
+  for (let it = 0; it < maxIter; it++) {
     const next = {};
     nodes.forEach((n) => {
       next[n] = (1 - damping) / N;
     });
 
     nodes.forEach((u) => {
-      const share = damping * pr[u];
+      const share = pr[u];
       if (outDegree[u] === 0) {
         const add = share / N;
         nodes.forEach((v) => {
-          next[v] += add;
+          next[v] += damping * add;
         });
       } else {
         const add = share / outDegree[u];
         (adj[u] || []).forEach((v) => {
-          next[v] += add;
+          next[v] += damping * add;
         });
       }
     });
 
+    // Check convergence (L1)
+    let delta = 0;
+    nodes.forEach((n) => {
+      delta += Math.abs(next[n] - pr[n]);
+    });
     Object.assign(pr, next);
+    if (delta < tol) break;
   }
 
   return pr;
