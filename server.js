@@ -24,7 +24,7 @@ app.get("/api/crawl", (req, res) => {
     return res.status(400).json({ error: "Missing ?url parameter" });
   }
 
-  const crawlerPath = path.join(PROJECT_ROOT, "crawler", "crawler.py");
+  const crawlerPath = path.join(PROJECT_ROOT, "src", "search.py");
 
   const py = spawn(
     PYTHON_CMD,
@@ -32,11 +32,9 @@ app.get("/api/crawl", (req, res) => {
       crawlerPath,
       url,
       "--max-pages",
-      "30",
-      "--max-depth",
-      "2",
-      "--concurrency",
-      "80"
+      process.env.MAX_PAGES || "30",
+      "--delay",
+      process.env.CRAWL_DELAY || "0"
     ],
     { cwd: PROJECT_ROOT }
   );

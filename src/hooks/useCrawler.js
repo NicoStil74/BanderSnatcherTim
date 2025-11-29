@@ -30,7 +30,7 @@ async function checkReachable(url) {
 }
 
 
-function useCrawler(initialUrl = "https://www.tum.de/de/") {
+function useCrawler(initialUrl = "https://www.cit.tum.de") {
   const [siteUrl, setSiteUrl] = useState(initialUrl);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");

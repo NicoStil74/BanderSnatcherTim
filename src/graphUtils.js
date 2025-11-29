@@ -1,4 +1,6 @@
 // src/graphUtils.js
+// PageRank implementation lives in computePageRank below; it scores the adjacency map
+// produced by the crawler before building the force-graph data.
 
 export function computePageRank(
   adj,
