@@ -17,11 +17,11 @@ logging.basicConfig(
 )
 logger = logging.getLogger("crawler")
 
-DEFAULT_MAX_PAGES = int(os.environ.get("MAX_PAGES", 50))
-DEFAULT_MAX_DEPTH = int(os.environ.get("MAX_DEPTH", 3))
+DEFAULT_MAX_PAGES = int(os.environ.get("MAX_PAGES", 30))
+DEFAULT_MAX_DEPTH = int(os.environ.get("MAX_DEPTH", 2))
 DEFAULT_DELAY = float(os.environ.get("CRAWL_DELAY", 0.0))
-DEFAULT_CONCURRENCY = int(os.environ.get("CONCURRENCY", 20))
-DEFAULT_RETRIES = int(os.environ.get("MAX_RETRIES", 3))
+DEFAULT_CONCURRENCY = int(os.environ.get("CONCURRENCY", 80))
+DEFAULT_RETRIES = int(os.environ.get("MAX_RETRIES", 2))
 
 SKIP_PREFIXES = ("mailto:", "tel:", "javascript:", "#", "data:")
 SKIP_EXTENSIONS = (
@@ -68,22 +68,40 @@ def fallback_title_from_url(url: str) -> str:
     last = path.split("/")[-1]
     return last.replace("-", " ").replace("_", " ").title()
 
+def extract_title_from_html(html: str, url: str) -> str:
+    try:
+        soup = BeautifulSoup(html, "html.parser")
+        title_tag = soup.find("title")
+        if title_tag and title_tag.string:
+            title = title_tag.string.strip()
+            if title:
+                return title[:180]
+    except Exception:
+        pass
+    return fallback_title_from_url(url)
+
 async def fetch_page(
     session: aiohttp.ClientSession,
     url: str,
     retries: int = DEFAULT_RETRIES
 ) -> Optional[str]:
+    """
+    Fetch a URL and return HTML if it looks like a page. Be lenient with
+    status codes (keep <400) and content-type (allow missing header).
+    """
     for attempt in range(retries):
         try:
             async with session.get(
                 url,
-                timeout=aiohttp.ClientTimeout(total=12)
+                timeout=aiohttp.ClientTimeout(total=4)
             ) as resp:
-                if resp.status != 200:
+                # Accept redirects and other <400 responses; many sites return
+                # bot-detection pages with 3xx/403 but still HTML we can parse.
+                if resp.status >= 400:
                     return None
 
                 content_type = resp.headers.get("Content-Type", "")
-                if "text/html" not in content_type:
+                if content_type and "text/html" not in content_type.lower():
                     return None
 
                 return await resp.text()
@@ -131,6 +149,8 @@ async def crawl_site(
     graph = {}
     titles = {}
 
+    stop_event = asyncio.Event()
+
     connector = aiohttp.TCPConnector(
         limit=max(concurrency * 2, 20),
         limit_per_host=concurrency,
@@ -148,7 +168,12 @@ async def crawl_site(
 
                 url, depth = item
 
-                if url in visited or depth > max_depth or len(visited) >= max_pages:
+                if (
+                    stop_event.is_set()
+                    or url in visited
+                    or depth > max_depth
+                    or len(visited) >= max_pages
+                ):
                     queue.task_done()
                     continue
 
@@ -157,9 +182,13 @@ async def crawl_site(
 
                 html = await fetch_page(session, url)
                 visited.add(url)
+                if len(visited) >= max_pages:
+                    stop_event.set()
 
-                title = fallback_title_from_url(url)
-                titles[url] = title
+                if html:
+                    titles[url] = extract_title_from_html(html, url)
+                else:
+                    titles[url] = fallback_title_from_url(url)
                 graph[url] = []
 
                 if html:
