@@ -9,6 +9,7 @@ app.use(cors());
 app.use(express.json());
 
 const PROJECT_ROOT = __dirname;
+const PYTHON_CMD = process.env.PYTHON || "python3";
 
 // ✅ Health check route
 app.get("/api/ping", (req, res) => {
@@ -26,7 +27,7 @@ app.get("/api/crawl", (req, res) => {
   const crawlerPath = path.join(PROJECT_ROOT, "crawler", "crawler.py");
 
   const py = spawn(
-    "python",
+    PYTHON_CMD,
     [crawlerPath, url, "--max-pages", "80", "--max-depth", "3"],
     { cwd: PROJECT_ROOT }
   );
@@ -40,6 +41,14 @@ app.get("/api/crawl", (req, res) => {
 
   py.stderr.on("data", (chunk) => {
     err += chunk.toString();
+  });
+
+  py.on("error", (spawnErr) => {
+    console.error("Failed to start crawler process", spawnErr);
+    return res.status(500).json({
+      error: "Crawler failed to start",
+      detail: spawnErr.message
+    });
   });
 
   py.on("close", (code) => {

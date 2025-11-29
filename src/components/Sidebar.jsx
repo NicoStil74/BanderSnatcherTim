@@ -114,7 +114,7 @@ const Sidebar = ({
                             gap: "0.5rem",
                             flexWrap: "wrap" // allow button to wrap below on narrow widths
                         }}
-                    >
+                 >
                         <input
                             type="text"
                             placeholder="e.g. quantum computing, enrollment, AI lab..."
