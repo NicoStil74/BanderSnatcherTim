@@ -28,7 +28,16 @@ app.get("/api/crawl", (req, res) => {
 
   const py = spawn(
     PYTHON_CMD,
-    [crawlerPath, url, "--max-pages", "80", "--max-depth", "3"],
+    [
+      crawlerPath,
+      url,
+      "--max-pages",
+      "30",
+      "--max-depth",
+      "2",
+      "--concurrency",
+      "80"
+    ],
     { cwd: PROJECT_ROOT }
   );
 

@@ -6,17 +6,52 @@ import useCrawler from "./hooks/useCrawler";
 import GraphCard from "./components/GraphCard";
 import LinkNeighborhood from "./components/LinkNeighborhood";
 
+// Build a larger synthetic placeholder graph for loading animation
+const buildLoadingPlaceholder = (count = 80) => {
+    const nodes = [];
+    const links = [];
+    const n = Math.max(10, count);
+    for (let i = 0; i < n; i++) {
+        nodes.push({
+            id: `loading-${i}`,
+            title: `Loading ${i + 1}`,
+            pagerank: 0
+        });
+        if (i > 0) {
+            links.push({ source: `loading-${i - 1}`, target: `loading-${i}` });
+        }
+    }
+    links.push({ source: `loading-${n - 1}`, target: `loading-0` });
+    return { nodes, links };
+};
+
 function App() {
     const [data, setData] = useState(demoData);
 
     const [hoverNode, setHoverNode] = useState(null);
     const [selectedNode, setSelectedNode] = useState(null);
+    const [displayGraphData, setDisplayGraphData] = useState(demoData);
 
     const [keyword, setKeyword] = useState("");
     const [keywordResults, setKeywordResults] = useState([]);
     const [searchError, setSearchError] = useState("");
 
     const graphRef = useRef();
+
+    const friendlyTitle = (id) => {
+        if (!id) return "Unknown page";
+        try {
+            const u = new URL(id);
+            const path = (u.pathname && u.pathname !== "/" ? u.pathname : "").replace(/\/$/, "");
+            if (path) {
+                const last = path.split("/").filter(Boolean).pop();
+                if (last) return `${u.hostname} • ${last.replace(/[-_]/g, " ")}`;
+            }
+            return u.hostname;
+        } catch {
+            return id;
+        }
+    };
 
     // crawler hook
     const {
@@ -35,13 +70,13 @@ function App() {
         try {
             const built = buildForceGraphData(crawlResult.graph);
 
-            if (crawlResult.titles) {
-                built.nodes.forEach((n) => {
-                    if (crawlResult.titles[n.id]) {
-                        n.title = crawlResult.titles[n.id];
-                    }
-                });
-            }
+            built.nodes.forEach((n) => {
+                if (crawlResult.titles && crawlResult.titles[n.id]) {
+                    n.title = crawlResult.titles[n.id];
+                } else {
+                    n.title = friendlyTitle(n.id);
+                }
+            });
 
             built.nodes.forEach((n) => {
                 delete n.x;
@@ -151,7 +186,7 @@ function App() {
         );
 
         const graphData = {
-            nodes: visibleNodes.map((n) => ({ ...n })),
+            nodes: visibleNodes.map((n) => ({ ...n, title: n.title || friendlyTitle(n.id) })),
             links: limitedLinks.map((l) => ({
                 source: typeof l.source === "object" ? l.source.id : l.source,
                 target: typeof l.target === "object" ? l.target.id : l.target
@@ -213,8 +248,6 @@ function App() {
     };
 
     useEffect(() => {
-        if (!selectedNode) return;
-
         const handleKey = () => {
             setSelectedNode(null);
             setHoverNode(null);
@@ -222,7 +255,7 @@ function App() {
 
         window.addEventListener("keydown", handleKey);
         return () => window.removeEventListener("keydown", handleKey);
-    }, [selectedNode]);
+    }, [setSelectedNode, setHoverNode]);
 
     // ⭐ UPDATED: highlight logic (persistent selection + hover)
     const isNodeHighlighted = (node) => {
@@ -282,6 +315,73 @@ function App() {
             ? sortedNodes.slice(0, 10)
             : [];
 
+    // Simple live animation: while crawling, add nodes progressively (no looping/reset).
+    // Once crawl finishes, show the full crawl graph immediately.
+    useEffect(() => {
+        const getId = (val) =>
+            typeof val === "object" && val !== null ? val.id : val;
+
+        let timer = null;
+        let active = true;
+
+        if (loadingCrawl) {
+            // Use the real crawl target nodes if present; otherwise a larger placeholder
+            const placeholder =
+                graphData?.nodes?.length > 10 ? graphData : buildLoadingPlaceholder(80);
+            const ordered = placeholder.nodes;
+            if (!ordered.length) {
+                setDisplayGraphData({ nodes: [], links: [] });
+                return () => {};
+            }
+
+            let idx = 0;
+            const step = () => {
+                if (!active) return;
+
+                if (idx >= ordered.length) {
+                    // reached the end: keep the full placeholder visible
+                    setDisplayGraphData((prev) => ({
+                        nodes: ordered,
+                        links: placeholder.links
+                    }));
+                    return;
+                }
+
+                const nextNode = ordered[idx];
+                setDisplayGraphData((prev) => {
+                    if (!active) return prev;
+                    const nodes = [...prev.nodes, nextNode];
+                    const nodeIds = new Set(nodes.map((n) => n.id));
+                    const links = placeholder.links.filter((l) => {
+                        const src = getId(l.source);
+                        const tgt = getId(l.target);
+                        return nodeIds.has(src) && nodeIds.has(tgt);
+                    });
+                    return { nodes, links };
+                });
+
+                idx += 1;
+                timer = setTimeout(step, 220); // ~4.5 nodes/second
+            };
+
+            setDisplayGraphData({ nodes: [], links: [] });
+            timer = setTimeout(step, 0);
+
+            return () => {
+                active = false;
+                if (timer) clearTimeout(timer);
+            };
+        }
+
+        // Not loading: show full graph data immediately
+        setDisplayGraphData(graphData ?? { nodes: [], links: [] });
+
+        return () => {
+            active = false;
+            if (timer) clearTimeout(timer);
+        };
+    }, [graphData, loadingCrawl]);
+
     return (
         <div className="app">
             <Sidebar
@@ -298,7 +398,7 @@ function App() {
 
             <main className="main">
                 <GraphCard
-                    graphData={graphData}
+                    graphData={displayGraphData}
                     graphRef={graphRef}
                     hoverNode={hoverNode}
                     setHoverNode={setHoverNode}

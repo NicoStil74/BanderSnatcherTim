@@ -1,6 +1,5 @@
 // src/components/Sidebar.jsx
 import React from "react";
-import logo from "../assets/TUMSEARCH.png";
 
 const Sidebar = ({
                      data,
@@ -23,23 +22,12 @@ const Sidebar = ({
                     flexDirection: "row",
                     alignItems: "center",
                     justifyContent: "center",
-                    gap: "1.3rem",
+                    gap: "0.8rem",
                     textAlign: "left",
                     marginBottom: "0.8rem",
                     width: "100%"
                 }}
             >
-                <img
-                    src={logo}
-                    alt="TUMSearch logo"
-                    style={{
-                        height: 75,
-                        width: 75,
-                        objectFit: "contain",
-                        filter: "drop-shadow(0 2px 6px rgba(0,0,0,0.5))"
-                    }}
-                />
-
                 <div
                     style={{
                         display: "flex",
@@ -55,7 +43,8 @@ const Sidebar = ({
                             fontSize: "1.9rem",
                             fontWeight: 700,
                             color: "#FDFEFF",
-                            textShadow: "0 2px 6px rgba(0,0,0,0.3)"
+                            textShadow: "0 2px 6px rgba(0,0,0,0.3)",
+                            letterSpacing: "0.01em"
                         }}
                     >
                         TUMSearch

@@ -9,7 +9,10 @@ function LinkNeighborhood({
   selectedOutgoing
 }) {
   return (
-    <section className="card results-card">
+    <section
+      className="card results-card"
+      style={{ maxWidth: 480, alignSelf: "start", width: "100%" }}
+    >
       <h2>Link neighborhood</h2>
 
       {!selectedNode ? (
@@ -61,31 +64,31 @@ function LinkNeighborhood({
             </div>
           </div>
 
-          {/* Incoming / outgoing columns */}
+          {/* Incoming then outgoing, stacked and tighter */}
           <div
             style={{
-              display: "grid",
-              gridTemplateColumns: "minmax(0, 1fr) minmax(0, 1fr)",
-              gap: "1rem"
+              display: "flex",
+              flexDirection: "column",
+              gap: "0.75rem"
             }}
           >
             {/* Incoming */}
             <div
               style={{
-                borderRadius: 14,
-                border: "1px solid rgba(30,64,175,0.7)",
-                background: "rgba(6,19,40,0.97)",
-                padding: "0.6rem 0.7rem 0.7rem",
+                borderRadius: 12,
+                border: "1px solid rgba(30,64,175,0.65)",
+                background: "rgba(6,19,40,0.96)",
+                padding: "0.55rem 0.7rem 0.65rem",
                 boxSizing: "border-box"
               }}
             >
               <div
                 style={{
-                  fontSize: "0.8rem",
+                  fontSize: "0.78rem",
                   textTransform: "uppercase",
-                  letterSpacing: "0.1em",
+                  letterSpacing: "0.08em",
                   color: "#A8B3C4",
-                  marginBottom: 6
+                  marginBottom: 4
                 }}
               >
                 Incoming ({selectedIncoming.length})
@@ -93,9 +96,9 @@ function LinkNeighborhood({
               <div
                 className="link-list-scroll"
                 style={{
-                  maxHeight: 176,
+                  maxHeight: 140,
                   overflowY: "auto",
-                  paddingRight: 6
+                  paddingRight: 4
                 }}
               >
                 {selectedIncoming.length === 0 ? (
@@ -107,14 +110,14 @@ function LinkNeighborhood({
                     <div
                       key={id}
                       style={{
-                        padding: "0.35rem 0.8rem",
-                        borderRadius: 14,
+                        padding: "0.3rem 0.7rem",
+                        borderRadius: 12,
                         background: "#0065BD",
-                        marginBottom: 6,
+                        marginBottom: 4,
                         fontSize: "0.78rem",
-                        lineHeight: 1.35,
+                        lineHeight: 1.3,
                         overflowWrap: "anywhere",
-                        boxShadow: "0 6px 16px rgba(0,32,80,0.6) inset"
+                        boxShadow: "0 4px 10px rgba(0,32,80,0.5) inset"
                       }}
                     >
                       {id}
@@ -127,20 +130,20 @@ function LinkNeighborhood({
             {/* Outgoing */}
             <div
               style={{
-                borderRadius: 14,
-                border: "1px solid rgba(0,101,189,0.7)",
-                background: "rgba(5,22,43,0.97)",
-                padding: "0.6rem 0.7rem 0.7rem",
+                borderRadius: 12,
+                border: "1px solid rgba(0,101,189,0.65)",
+                background: "rgba(5,22,43,0.96)",
+                padding: "0.55rem 0.7rem 0.65rem",
                 boxSizing: "border-box"
               }}
             >
               <div
                 style={{
-                  fontSize: "0.8rem",
+                  fontSize: "0.78rem",
                   textTransform: "uppercase",
-                  letterSpacing: "0.1em",
+                  letterSpacing: "0.08em",
                   color: "#A8B3C4",
-                  marginBottom: 6
+                  marginBottom: 4
                 }}
               >
                 Outgoing ({selectedOutgoing.length})
@@ -148,9 +151,9 @@ function LinkNeighborhood({
               <div
                 className="link-list-scroll"
                 style={{
-                  maxHeight: 176,
+                  maxHeight: 140,
                   overflowY: "auto",
-                  paddingRight: 6
+                  paddingRight: 4
                 }}
               >
                 {selectedOutgoing.length === 0 ? (
@@ -162,15 +165,15 @@ function LinkNeighborhood({
                     <div
                       key={id}
                       style={{
-                        padding: "0.35rem 0.8rem",
-                        borderRadius: 14,
+                        padding: "0.3rem 0.7rem",
+                        borderRadius: 12,
                         background: "#98C6EA",
                         color: "#02101F",
-                        marginBottom: 6,
+                        marginBottom: 4,
                         fontSize: "0.78rem",
-                        lineHeight: 1.35,
+                        lineHeight: 1.3,
                         overflowWrap: "anywhere",
-                        boxShadow: "0 6px 16px rgba(0,32,80,0.4) inset"
+                        boxShadow: "0 4px 10px rgba(0,32,80,0.35) inset"
                       }}
                     >
                       {id}
