@@ -6,7 +6,6 @@ import json
 import os
 import time
 import argparse
-from collections import deque
 from urllib.parse import urljoin, urlparse, urlunparse
 from typing import Optional
 
@@ -20,8 +19,8 @@ logger = logging.getLogger("crawler")
 
 DEFAULT_MAX_PAGES = int(os.environ.get("MAX_PAGES", 50))
 DEFAULT_MAX_DEPTH = int(os.environ.get("MAX_DEPTH", 3))
-DEFAULT_DELAY = float(os.environ.get("CRAWL_DELAY", 0.3))
-DEFAULT_CONCURRENCY = int(os.environ.get("CONCURRENCY", 5))
+DEFAULT_DELAY = float(os.environ.get("CRAWL_DELAY", 0.0))
+DEFAULT_CONCURRENCY = int(os.environ.get("CONCURRENCY", 20))
 DEFAULT_RETRIES = int(os.environ.get("MAX_RETRIES", 3))
 
 SKIP_PREFIXES = ("mailto:", "tel:", "javascript:", "#", "data:")
@@ -119,60 +118,73 @@ async def crawl_site(
     delay: float = DEFAULT_DELAY,
     concurrency: int = DEFAULT_CONCURRENCY,
 ) -> dict:
-
     start_time = time.time()
     start_url = normalize_url(start_url)
     domain = urlparse(start_url).netloc
     keyword = keyword_filter.lower().strip()
 
     visited = set()
-    queue = deque([(start_url, 0)])
+    seen = set([start_url])
+    queue: asyncio.Queue = asyncio.Queue()
+    queue.put_nowait((start_url, 0))
 
     graph = {}
     titles = {}
 
-    connector = aiohttp.TCPConnector(limit=concurrency)
+    connector = aiohttp.TCPConnector(
+        limit=max(concurrency * 2, 20),
+        limit_per_host=concurrency,
+        ttl_dns_cache=300,
+    )
     headers = {"User-Agent": "Mozilla/5.0 (compatible; TUMSearchCrawler/1.0)"}
 
     async with aiohttp.ClientSession(connector=connector, headers=headers) as session:
-        while queue and len(visited) < max_pages:
-            batch = []
-            while (
-                queue
-                and len(batch) < concurrency
-                and (len(visited) + len(batch)) < max_pages
-            ):
-                url, depth = queue.popleft()
-                if url in visited or depth > max_depth:
+        async def worker():
+            while True:
+                item = await queue.get()
+                if item is None:
+                    queue.task_done()
+                    break
+
+                url, depth = item
+
+                if url in visited or depth > max_depth or len(visited) >= max_pages:
+                    queue.task_done()
                     continue
-                batch.append((url, depth))
 
-            if not batch:
-                continue
+                if delay:
+                    await asyncio.sleep(delay)
 
-            tasks = [fetch_page(session, url) for url, _ in batch]
-            results = await asyncio.gather(*tasks)
-
-            for (url, depth), html in zip(batch, results):
+                html = await fetch_page(session, url)
                 visited.add(url)
+
                 title = fallback_title_from_url(url)
                 titles[url] = title
                 graph[url] = []
 
-                if not html:
-                    continue
+                if html:
+                    if keyword and (keyword not in html.lower() and keyword not in url.lower()):
+                        queue.task_done()
+                        continue
 
-                if keyword and (keyword not in html.lower() and keyword not in url.lower()):
-                    continue
+                    links = extract_links(html, url, domain)
+                    graph[url] = list(links)
 
-                links = extract_links(html, url, domain)
-                graph[url] = list(links)
+                    next_depth = depth + 1
+                    if next_depth <= max_depth:
+                        for link in links:
+                            if link in visited or link in seen or len(seen) >= max_pages:
+                                continue
+                            seen.add(link)
+                            queue.put_nowait((link, next_depth))
 
-                for link in links:
-                    if link not in visited:
-                        queue.append((link, depth + 1))
+                queue.task_done()
 
-            await asyncio.sleep(delay)
+        workers = [asyncio.create_task(worker()) for _ in range(concurrency)]
+        await queue.join()
+        for _ in workers:
+            queue.put_nowait(None)
+        await asyncio.gather(*workers, return_exceptions=True)
 
     elapsed = time.time() - start_time
 
