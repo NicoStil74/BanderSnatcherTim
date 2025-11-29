@@ -13,7 +13,11 @@ function CrawlerControls({
         marginBottom: "0.9rem",
         display: "flex",
         alignItems: "center",
-        gap: "0.6rem"
+        gap: "0.6rem",
+        padding: "0.65rem 0.8rem",
+        borderRadius: "0.9rem",
+        background: "#050827",
+        border: "1px solid rgba(32, 51, 81, 0.7)"
       }}
     >
       <span
@@ -35,11 +39,12 @@ function CrawlerControls({
           flex: 1,
           maxWidth: 420,
           padding: "0.45rem 0.75rem",
-          borderRadius: 999,
-          border: "1px solid rgba(148,163,184,0.7)",
-          background: "rgba(15,23,42,0.96)",
+          borderRadius: 10,
+          border: "1px solid rgba(80, 110, 150, 0.6)",
+          background: "#050827",
           color: "#F9FAFB",
-          fontSize: "0.82rem"
+          fontSize: "0.82rem",
+          boxShadow: "0 0 0 1px rgba(10,25,45,0.35) inset"
         }}
       />
       <button
