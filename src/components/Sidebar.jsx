@@ -12,6 +12,9 @@ const Sidebar = ({
   handleResultClick,
   topNodes
 }) => {
+  const nodeCount = data?.nodes?.length ?? 0;
+  const edgeCount = data?.links?.length ?? 0;
+
   return (
     <aside className="sidebar">
       {/* HEADER */}
@@ -152,6 +155,17 @@ const Sidebar = ({
             {visibleResults.length} shown
           </div>
         </div>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "flex-start",
+            gap: "0.75rem",
+            fontSize: "0.78rem",
+            color: "#9FB4D8",
+            marginTop: -2
+          }}
+        >
+        </div>
 
         <div
           className="link-list-scroll"
@@ -247,7 +261,25 @@ const Sidebar = ({
 
       {/* TOP NODES (optional existing) */}
       <section className="sidebar-section">
-        <h2>Top PageRank</h2>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "baseline",
+            justifyContent: "space-between",
+            gap: "0.5rem"
+          }}
+        >
+          <h2 style={{ margin: 0 }}>Top PageRank</h2>
+          <div
+            style={{
+              fontSize: "0.75rem",
+              color: "#9FB4D8",
+              whiteSpace: "nowrap"
+            }}
+          >
+            Nodes: {nodeCount} • Edges: {edgeCount}
+          </div>
+        </div>
         <div className="table-wrapper">
           <table>
             <thead>
