@@ -43,7 +43,11 @@ def is_same_domain(url: str, domain: str) -> bool:
     parsed = urlparse(url)
     url_domain = parsed.netloc.lower().replace("www.", "")
     target_domain = domain.lower().replace("www.", "")
-    return bool(url_domain) and url_domain == target_domain
+    if not url_domain or not target_domain:
+        return False
+
+    # Allow subdomains of the target (e.g., *.tum.de) so linked sub-sites are reachable.
+    return url_domain == target_domain or url_domain.endswith("." + target_domain)
 
 def is_valid_url(url: str, domain: str) -> bool:
     if not url:

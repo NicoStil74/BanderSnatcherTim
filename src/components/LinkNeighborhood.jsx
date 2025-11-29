@@ -57,9 +57,9 @@ function LinkNeighborhood({
               {selectedNode.id}
             </div>
             <div style={{ marginTop: 6, fontSize: "0.8rem" }}>
-              PR/10<sup>4</sup>:{" "}
+              PageRank:{" "}
               <span style={{ color: "#FFCB05" }}>
-                {((selectedNode.pagerank ?? 0) * 10000).toFixed(2)}
+                {(selectedNode.pagerank ?? 0).toFixed(6)}
               </span>
             </div>
           </div>

@@ -200,9 +200,6 @@ const Sidebar = ({
                   }}
                 >
                   {n.title || n.id}
-                  <span style={{ marginLeft: 6, color: "#FFCB05", fontSize: "0.75rem" }}>
-                    {(n.pagerank ?? 0 * 10000).toFixed ? ((n.pagerank ?? 0) * 10000).toFixed(0) : ""}
-                  </span>
                 </div>
 
                 <a
@@ -256,14 +253,14 @@ const Sidebar = ({
             <thead>
               <tr>
                 <th>Title</th>
-                <th>PR/10<sup>4</sup></th>
+                <th>PR</th>
               </tr>
             </thead>
             <tbody>
               {topNodes.slice(0, 5).map((n) => (
                 <tr key={n.id}>
                   <td>{n.title || n.id}</td>
-                  <td>{((n.pagerank ?? 0) * 10000).toFixed(0)}</td>
+                  <td>{(n.pagerank ?? 0).toFixed(6)}</td>
                 </tr>
               ))}
             </tbody>
