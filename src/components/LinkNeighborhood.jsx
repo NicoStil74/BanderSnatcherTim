@@ -23,9 +23,8 @@ function LinkNeighborhood({
         </p>
       ) : (
         <>
-          <p className="muted">
-            In-degree:{" "}
-            <strong>{inDegree.get(selectedNode.id) ?? 0}</strong> • Out-degree:{" "}
+          <p className="muted" style={{ marginBottom: "0.6rem" }}>
+            In: <strong>{inDegree.get(selectedNode.id) ?? 0}</strong> • Out:{" "}
             <strong>{outDegree.get(selectedNode.id) ?? 0}</strong>
           </p>
 

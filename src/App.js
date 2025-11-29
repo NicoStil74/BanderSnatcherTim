@@ -139,10 +139,11 @@ function App() {
     } = useMemo(() => {
         const MAX_EDGES = 3000;
 
-        const limitedLinks = data.links.slice(0, MAX_EDGES);
+        const renderedLinks = data.links.slice(0, MAX_EDGES);
+        const degreeLinks = data.links;
 
         const visibleNodeIds = new Set();
-        limitedLinks.forEach((l) => {
+        renderedLinks.forEach((l) => {
             const src = typeof l.source === "object" ? l.source.id : l.source;
             const tgt = typeof l.target === "object" ? l.target.id : l.target;
             visibleNodeIds.add(src);
@@ -160,7 +161,7 @@ function App() {
         let maxPR = -Infinity;
         let minPR = Infinity;
 
-        visibleNodes.forEach((n) => {
+        data.nodes.forEach((n) => {
             neighbors.set(n.id, new Set());
             inDegree.set(n.id, 0);
             outDegree.set(n.id, 0);
@@ -172,7 +173,7 @@ function App() {
             if (pr < minPR) minPR = pr;
         });
 
-        limitedLinks.forEach((l) => {
+        degreeLinks.forEach((l) => {
             const src = typeof l.source === "object" ? l.source.id : l.source;
             const tgt = typeof l.target === "object" ? l.target.id : l.target;
 
@@ -197,7 +198,7 @@ function App() {
 
         const graphData = {
             nodes: visibleNodes.map((n) => ({ ...n, title: n.title || friendlyTitle(n.id) })),
-            links: limitedLinks.map((l) => ({
+            links: renderedLinks.map((l) => ({
                 source: typeof l.source === "object" ? l.source.id : l.source,
                 target: typeof l.target === "object" ? l.target.id : l.target
             }))
