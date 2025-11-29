@@ -95,14 +95,14 @@ function GraphCard({
                     linkColor={(link) => {
                       const highlighted = isLinkHighlighted(link);
                   
-                      // ⭐ No hover + no selection → show all edges
+                      // ⭐ No hover + no selection → show all edges (slightly brighter)
                       if (!hoverNode && !selectedNode) {
-                          return "rgba(148,163,184,0.1)";
+                          return "rgba(148,163,184,0.22)";
                       }
                   
                       return highlighted
                           ? "rgba(255,203,5,0.8)"
-                          : "rgba(148,163,184,0.05)";
+                          : "rgba(148,163,184,0.12)";
                   }}
                   
                     linkWidth={(link) =>

@@ -212,6 +212,18 @@ function App() {
         focusOnNode(node);
     };
 
+    useEffect(() => {
+        if (!selectedNode) return;
+
+        const handleKey = () => {
+            setSelectedNode(null);
+            setHoverNode(null);
+        };
+
+        window.addEventListener("keydown", handleKey);
+        return () => window.removeEventListener("keydown", handleKey);
+    }, [selectedNode]);
+
     // ⭐ UPDATED: highlight logic (persistent selection + hover)
     const isNodeHighlighted = (node) => {
         const target = selectedNode || hoverNode;
