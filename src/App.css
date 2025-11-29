@@ -8,13 +8,14 @@
     box-sizing: border-box;
 }
 
-/* Make page fill viewport, but allow vertical scrolling if needed */
+/* Make page fill viewport and PREVENT global scrolling */
 html,
 body,
 #root {
     height: 100%;
     margin: 0;
     padding: 0;
+    overflow: hidden; /* ⛔ no big browser scrollbar */
 }
 
 body {
@@ -22,15 +23,14 @@ body {
     sans-serif;
     background: #02101f; /* deep navy, close to tum.de */
     color: #f5f7fa;
-    overflow-x: hidden;
-    overflow-y: auto; /* allow vertical scroll */
+    overflow-x: hidden; /* keep just in case */
 }
 
 /* Root container (top-level React wrapper) */
 .app {
     display: flex;
-    min-height: 100vh; /* can grow if content taller */
-    overflow: hidden;
+    height: 100vh;      /* fixed to viewport height */
+    overflow: hidden;   /* nothing leaks out of the app */
 }
 
 /* ------------------------------------------------------------------ */
@@ -220,7 +220,7 @@ small {
     grid-auto-rows: minmax(0, 1fr);
     gap: 1.3rem;
     background: radial-gradient(circle at top, #102136 0%, #02101f 60%);
-    overflow-y: auto;   /* scroll if graph + panel taller than viewport */
+    overflow-y: hidden;  /* ⛔ no vertical scroll on main */
     overflow-x: hidden;
 }
 
