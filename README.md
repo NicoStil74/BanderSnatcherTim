@@ -1,70 +1,202 @@
-# Getting Started with Create React App
+# TUMSearch – PageRank Explorer
+### *Hackathon Project by Team Bandersnatchers*
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+TUMSearch is an interactive web application that crawls a website, constructs its internal link graph, computes PageRank across all discovered pages, and visualizes the network using an interactive force-directed graph interface.
 
-## Available Scripts
+It was created during the TUM Hackathon by **Team Bandersnatchers**.
 
-In the project directory, you can run:
+---
 
-### `npm start`
+## ⭐ **Features**
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+### 🔍 Website Crawler
+- Crawls any website (supports subdomains)
+- Uses asynchronous requests (aiohttp)
+- Extracts internal hyperlinks
+- Detects page titles
+- Filters out non-HTML content (PDF, images, JS, CSS, etc.)
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+### 📊 PageRank Computation
+- Builds a directed graph of hyperlinks
+- Computes PageRank from the extracted graph
+- Highlights high-authority pages
 
-### `npm test`
+### 🎨 Interactive Visualization
+- Node size = PageRank score  
+- Node color = PageRank score (gradient blue → yellow)
+- Hover to highlight and show metadata
+- Click to explore incoming/outgoing links
+- Smooth force-directed layout
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+### 🧭 Keyword Search
+- Search discovered pages by title or URL
+- Jump directly to nodes in the visualization
 
-### `npm run build`
+---
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+# 🧱 **Tech Stack**
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+### Frontend  
+- React  
+- react-force-graph-2d  
+- CSS (custom styling)
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+### Backend  
+- Node.js  
+- Express  
+- Child process integration with Python
 
-### `npm run eject`
+### Crawler  
+- Python 3  
+- aiohttp  
+- BeautifulSoup4  
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+---
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+# 📁 **Project Structure**
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+```
+project/
+│
+├── server.js              # Node backend API
+├── crawler/
+│   └── crawler.py         # Python asynchronous web crawler
+│
+├── src/                   # React frontend
+│   ├── components/        # Sidebar, GraphCard, Controls, Neighborhood
+│   ├── hooks/
+│   ├── App.js
+│   ├── App.css
+│   └── ...
+│
+├── public/
+└── package.json
+```
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+---
 
-## Learn More
+# ⚙️ **Installation & Setup**
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+## 1️⃣ Install Node Dependencies
+```sh
+npm install
+```
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+## 2️⃣ Install Python Dependencies
+```sh
+pip install aiohttp beautifulsoup4
+```
 
-### Code Splitting
+## 3️⃣ Start the Backend
+```sh
+node server.js
+```
+Backend will run at:
+```
+http://localhost:5001
+```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+## 4️⃣ Start the Frontend
+```sh
+npm start
+```
+Frontend runs at:
+```
+http://localhost:3000
+```
 
-### Analyzing the Bundle Size
+---
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+# 🚀 **Using the Application**
 
-### Making a Progressive Web App
+1. Open the frontend:
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+   **http://localhost:3000**
 
-### Advanced Configuration
+2. Enter a URL such as:
+   ```
+   https://www.tum.de
+   ```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+3. Click **Crawl**
 
-### Deployment
+4. After crawling finishes:
+   - Graph appears in the center  
+   - Sidebar shows top PageRank pages  
+   - Right panel shows incoming/outgoing links  
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+### Interactions:
+- **Drag** → move the graph  
+- **Scroll** → zoom  
+- **Hover** → see PageRank + title  
+- **Click** → explore link neighborhood  
 
-### `npm run build` fails to minify
+---
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+# 🕷️ **Python Crawler Overview**
+
+### Key behaviors:
+- Normalizes URLs  
+- Accepts subdomains (`*.tum.de`)  
+- Ignores PDFs, images, videos, etc.  
+- Detects HTML pages using content-type  
+- Gracefully handles bot-detection, redirects, 403/302 HTML pages  
+- Uses concurrent workers for maximum crawling speed  
+- Returns JSON:
+
+```json
+{
+  "graph": { "url": ["link1", "link2"] },
+  "titles": { "url": "Page Title" },
+  "crawl_info": {
+    "start_url": "",
+    "pages_crawled": 0,
+    "max_pages": 30,
+    "max_depth": 2
+  }
+}
+```
+
+### Manual Test
+You can test crawl manually:
+```sh
+python3 crawler/crawler.py https://www.tum.de --max-pages 30 --max-depth 2
+```
+
+---
+
+# 🛠️ Troubleshooting
+
+### ❗ Backend: “Crawler failed to start”
+Your environment may use `python` instead of `python3`.
+
+Fix:
+```sh
+set PYTHON=python      # on Windows
+export PYTHON=python   # on mac/Linux
+```
+
+### ❗ Graph is Empty
+- Backend not running  
+- Invalid URL  
+- Domain blocks bots (common for large institutions)  
+
+### ❗ Windows SSL Issues
+Try:
+```sh
+pip install certifi
+```
+or test a different website.
+
+---
+
+# 👥 **Team**
+
+**Bandersnatchers**  
+TUM Hackathon Project
+
+---
+
+# 📜 **License**
+
+This project is licensed under the **MIT License**.
