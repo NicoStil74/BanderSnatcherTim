@@ -3,19 +3,18 @@ import "./App.css";
 import { buildForceGraphData, demoData } from "./graphUtils";
 import Sidebar from "./components/Sidebar";
 import useCrawler from "./hooks/useCrawler";
-// ⛔️ removed CrawlerControls import – GraphCard uses it internally
 import GraphCard from "./components/GraphCard";
 import LinkNeighborhood from "./components/LinkNeighborhood";
 
 function App() {
     const [data, setData] = useState(demoData);
-    const [searchError, setSearchError] = useState("");
 
     const [hoverNode, setHoverNode] = useState(null);
     const [selectedNode, setSelectedNode] = useState(null);
 
     const [keyword, setKeyword] = useState("");
     const [keywordResults, setKeywordResults] = useState([]);
+    const [searchError, setSearchError] = useState("");
 
     const graphRef = useRef();
 
@@ -36,7 +35,6 @@ function App() {
         try {
             const built = buildForceGraphData(crawlResult.graph);
 
-            // apply titles
             if (crawlResult.titles) {
                 built.nodes.forEach((n) => {
                     if (crawlResult.titles[n.id]) {
@@ -45,7 +43,6 @@ function App() {
                 });
             }
 
-            // remove old positional fields so physics runs
             built.nodes.forEach((n) => {
                 delete n.x;
                 delete n.y;
@@ -68,7 +65,6 @@ function App() {
                 }
             });
 
-            // *** FIX: remove embedded node objects from links ***
             built.links = built.links.map((l) => ({
                 source: typeof l.source === "object" ? l.source.id : l.source,
                 target: typeof l.target === "object" ? l.target.id : l.target
@@ -76,17 +72,15 @@ function App() {
 
             setData(built);
         } catch (e) {
-            console.error("Error building graph from crawlResult, using demo graph", e);
+            console.error("Error building graph from crawlResult. Using demo graph.", e);
             setData(demoData);
         }
     }, [crawlResult]);
 
-    // auto-crawl on mount
     useEffect(() => {
         runCrawl();
     }, [runCrawl]);
 
-    // Compute neighbors, degrees, sorted nodes, and LIMIT EDGES
     const {
         graphData,
         neighbors,
@@ -100,10 +94,8 @@ function App() {
     } = useMemo(() => {
         const MAX_EDGES = 3000;
 
-        // limit links
         const limitedLinks = data.links.slice(0, MAX_EDGES);
 
-        // keep only nodes referenced by those links
         const visibleNodeIds = new Set();
         limitedLinks.forEach((l) => {
             const src = typeof l.source === "object" ? l.source.id : l.source;
@@ -158,7 +150,6 @@ function App() {
             (a, b) => (b.pagerank ?? 0) - (a.pagerank ?? 0)
         );
 
-        // final clean graph for the ForceGraph
         const graphData = {
             nodes: visibleNodes.map((n) => ({ ...n })),
             links: limitedLinks.map((l) => ({
@@ -187,7 +178,6 @@ function App() {
         graphRef.current.zoom(4, 600);
     };
 
-    // Keyword search
     const handleKeywordSearch = (e) => {
         e.preventDefault();
         const q = keyword.trim().toLowerCase();
@@ -222,18 +212,23 @@ function App() {
         focusOnNode(node);
     };
 
+    // ⭐ UPDATED: highlight logic (persistent selection + hover)
     const isNodeHighlighted = (node) => {
-        if (!hoverNode) return false;
-        if (hoverNode.id === node.id) return true;
-        const neigh = neighbors.get(hoverNode.id);
+        const target = selectedNode || hoverNode;
+        if (!target) return false;
+        if (target.id === node.id) return true;
+
+        const neigh = neighbors.get(target.id);
         return neigh?.has(node.id);
     };
 
     const isLinkHighlighted = (link) => {
-        if (!hoverNode) return false;
+        const target = selectedNode || hoverNode;
+        if (!target) return false;
+
         const src = link.source.id ?? link.source;
         const tgt = link.target.id ?? link.target;
-        return src === hoverNode.id || tgt === hoverNode.id;
+        return src === target.id || tgt === target.id;
     };
 
     const getNodeBaseColor = (node) => {
@@ -255,11 +250,7 @@ function App() {
         const r = segA ? t2 / 0.65 : (t2 - 0.65) / 0.35;
 
         const mix = (u, v) => Math.round(u * (1 - r) + v * r);
-        const R = mix(a[0], b[0]);
-        const G = mix(a[1], b[1]);
-        const B = mix(a[2], b[2]);
-
-        return `rgb(${R}, ${G}, ${B})`;
+        return `rgb(${mix(a[0], b[0])}, ${mix(a[1], b[1])}, ${mix(a[2], b[2])})`;
     };
 
     const topNodes = sortedNodes.slice(0, 5);
@@ -276,8 +267,8 @@ function App() {
         hasQuery && keywordResults.length > 0
             ? keywordResults
             : !hasQuery
-                ? sortedNodes.slice(0, 10)
-                : [];
+            ? sortedNodes.slice(0, 10)
+            : [];
 
     return (
         <div className="app">
@@ -294,7 +285,6 @@ function App() {
             />
 
             <main className="main">
-                {/* 🔽 Graph card (left side of grid) */}
                 <GraphCard
                     graphData={graphData}
                     graphRef={graphRef}
@@ -306,7 +296,6 @@ function App() {
                     isNodeHighlighted={isNodeHighlighted}
                     isLinkHighlighted={isLinkHighlighted}
                     getNodeBaseColor={getNodeBaseColor}
-                    // 🔽 pass crawl controls to GraphCard (which renders CrawlerControls)
                     siteUrl={siteUrl}
                     setSiteUrl={setSiteUrl}
                     loading={loadingCrawl}
@@ -314,7 +303,6 @@ function App() {
                     onCrawl={runCrawl}
                 />
 
-                {/* 🔽 Right-hand panel (neighbors) */}
                 <LinkNeighborhood
                     selectedNode={selectedNode}
                     inDegree={inDegree}
